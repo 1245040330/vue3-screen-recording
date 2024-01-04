@@ -2,13 +2,22 @@
  * @Author: 1245040330 32012815+1245040330@users.noreply.github.com
  * @Date: 2024-01-04 15:02:01
  * @LastEditors: 1245040330 32012815+1245040330@users.noreply.github.com
- * @LastEditTime: 2024-01-04 18:02:21
+ * @LastEditTime: 2024-01-04 21:05:48
  * @FilePath: \vue3-screen-recording\src\views\index\index.vue
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
 <template>
   <div class="index-box">
-    <el-button v-if="!enabled" type="primary" @click="startUseDisplayMedia"
+    <div>
+      音频录制：{{
+        audioIsSupported && microphones.length > 0 ? "支持" : "不支持"
+      }}; 屏幕录制：{{ isSupported ? "支持" : "不支持" }}
+    </div>
+    <el-button
+      style="margin-top: 8px"
+      v-if="!enabled"
+      type="primary"
+      @click="startUseDisplayMedia"
       >开始录制</el-button
     >
 
@@ -20,7 +29,7 @@
     </div>
     <div class="title">录屏预览</div>
     <video ref="displayMediaPreview" autoplay class="video-box"></video>
-    <div class="version">版本1.7.1</div>
+    <div class="version">版本1.7.2</div>
   </div>
 </template>
 <script>
@@ -53,13 +62,14 @@ export default {
       stream: audioStream,
       start: audioStart,
       stop: audioStop,
+      isSupported: audioIsSupported,
     } = useUserMedia({
       constraints: {
         audio: { deviceId: currentMicrophone },
       },
     });
 
-    const { stream, start, stop, enabled } = useDisplayMedia();
+    const { stream, start, stop, enabled, isSupported } = useDisplayMedia();
     return {
       stream,
       start,
@@ -68,7 +78,10 @@ export default {
       audioStart,
       audioStop,
       audioStream,
+      microphones,
       currentMicrophone,
+      audioIsSupported,
+      isSupported,
     };
   },
   components: {
@@ -135,7 +148,7 @@ export default {
       } else {
         combined = stream;
       }
-
+    
       this.mediaRecorder = new MediaRecorder(combined);
       this.mediaRecorder.ondataavailable = (event) => {
         let data = event.data;
@@ -149,11 +162,11 @@ export default {
      */
     stopRecording() {
       this.mediaRecorder.stop();
-      let recordedBlob = new Blob(this.dataChunks, { type: "video/mp4" });
+      let recordedBlob = new Blob(this.dataChunks, { type: "video/webm" });
       let url = URL.createObjectURL(recordedBlob);
       console.log(url);
       let time = useDateFormat(useNow(), "YYYY-MM-DD HH:mm:ss");
-      saveAs(url, time.value + "录屏.mp4");
+      saveAs(url, time.value + "录屏.webm");
     },
   },
 };
@@ -182,8 +195,8 @@ export default {
     width: 50vw;
     background: #000;
   }
-  .version{
-    margin-top:8px;
+  .version {
+    margin-top: 8px;
     opacity: 0.5;
   }
 
