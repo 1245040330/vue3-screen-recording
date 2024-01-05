@@ -24,4 +24,7 @@ ffmpeg -i webm.webm video.mp4
 ```
 
 ## DEMO
+![Alt text](demo-1.webp)
+
+## 动图DEMO
 ![Alt text](demo.gif)
