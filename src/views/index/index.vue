@@ -2,7 +2,7 @@
  * @Author: 1245040330 32012815+1245040330@users.noreply.github.com
  * @Date: 2024-01-04 15:02:01
  * @LastEditors: 1245040330 32012815+1245040330@users.noreply.github.com
- * @LastEditTime: 2024-01-05 11:59:58
+ * @LastEditTime: 2024-01-05 12:16:25
  * @FilePath: \vue3-screen-recording\src\views\index\index.vue
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
@@ -17,6 +17,7 @@
       style="margin-top: 8px"
       v-if="!enabled"
       type="primary"
+      :disabled="!isSupported"
       @click="startUseDisplayMedia"
       >开始录制</el-button
     >
@@ -29,7 +30,7 @@
     </div>
     <div class="title">录屏预览</div>
     <video ref="displayMediaPreview" autoplay class="video-box"></video>
-    <div class="version">版本1.7.2</div>
+    <div class="version">视频编码:{{ mimeType }}. 版本1.7.2</div>
   </div>
 </template>
 <script>
@@ -108,8 +109,6 @@ export default {
 
     var contentTypes = [
       "video/webm",
-      "video/webm;codecs=vp8",
-      "video/webm; codecs=vp9",
       "video/x-matroska;codecs=avc1",
       "audio/webm",
       "video/mp4;codecs=avc1",
@@ -118,8 +117,13 @@ export default {
       "video/webm;codecs=h264",
       "video/webm;codecs=h265",
       "video/mpeg",
+      "video/webm;codecs=vp8",
+      "video/webm; codecs=vp9",
     ];
     contentTypes.forEach((contentType) => {
+      if (MediaRecorder.isTypeSupported(contentType)) {
+        this.mimeType = contentType;
+      }
       console.log(
         contentType +
           " is " +
@@ -194,8 +198,10 @@ export default {
       this.mediaRecorder.stop();
       this.endRecordingTime = new Date().getTime();
       // let recordedBlob = new Blob(this.dataChunks, { type: this.mimeType });
-      const fixBlob = await fixWebmDuration(new Blob([...this.dataChunks], { type: this.mimeType }));
-      this.dataChunks=[];
+      const fixBlob = await fixWebmDuration(
+        new Blob([...this.dataChunks], { type: this.mimeType })
+      );
+      this.dataChunks = [];
       let url = URL.createObjectURL(fixBlob);
       window.open(url);
       console.log(url);
