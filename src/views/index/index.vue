@@ -30,7 +30,7 @@
     </div>
     <div class="title">录屏预览</div>
     <video ref="displayMediaPreview" autoplay class="video-box"></video>
-    <div class="version">视频编码:{{ mimeType }}. 版本1.7.2</div>
+    <div class="version">视频编码:{{ mimeType }}. 版本1.8.0</div>
   </div>
 </template>
 <script>
