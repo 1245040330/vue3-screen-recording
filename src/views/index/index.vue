@@ -2,7 +2,7 @@
  * @Author: 1245040330 32012815+1245040330@users.noreply.github.com
  * @Date: 2024-01-04 15:02:01
  * @LastEditors: 1245040330 32012815+1245040330@users.noreply.github.com
- * @LastEditTime: 2024-01-05 12:16:25
+ * @LastEditTime: 2024-01-05 14:01:25
  * @FilePath: \vue3-screen-recording\src\views\index\index.vue
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
@@ -141,21 +141,18 @@ export default {
     /**
      * @desc 开始使用屏幕直播
      */
-    startUseDisplayMedia() {
-      this.audioStart();
-      this.start();
+    async startUseDisplayMedia() {
+      if (this.audioIsSupported && this.microphones.length > 0) {
+        await this.audioStart();
+      }
+      await this.start();
       watchEffect(() => {
         if (this.stream) {
-          console.log(
-            "开始更新流",
-            this.stream,
-            this.$refs.displayMediaPreview
-          );
           this.$refs.displayMediaPreview.srcObject = this.stream;
-          this.$nextTick(() => {
-            this.startRecording(this.stream, this.audioStream);
-          });
         }
+      });
+      this.$nextTick(() => {
+        this.startRecording(this.stream, this.audioStream);
       });
     },
     /**
