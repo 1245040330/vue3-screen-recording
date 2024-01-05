@@ -2,7 +2,7 @@
  * @Author: 1245040330 32012815+1245040330@users.noreply.github.com
  * @Date: 2024-01-04 15:02:01
  * @LastEditors: 1245040330 32012815+1245040330@users.noreply.github.com
- * @LastEditTime: 2024-01-04 21:05:48
+ * @LastEditTime: 2024-01-05 11:59:58
  * @FilePath: \vue3-screen-recording\src\views\index\index.vue
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
 -->
@@ -43,6 +43,7 @@ import {
 } from "@vueuse/core";
 import { watchEffect, computed } from "vue";
 import { saveAs } from "file-saver";
+import fixWebmDuration from "webm-duration-fix";
 export default {
   name: "IndexBox",
   setup() {
@@ -97,10 +98,36 @@ export default {
     return {
       mediaRecorder: undefined,
       dataChunks: [],
+      startRecordingTime: 0, //开始录制时间
+      endRecordingTime: 0, //结束录制时间
+      mimeType: "video/webm;codecs=vp9",
     };
   },
   created() {
     document.title = "录屏工具";
+
+    var contentTypes = [
+      "video/webm",
+      "video/webm;codecs=vp8",
+      "video/webm; codecs=vp9",
+      "video/x-matroska;codecs=avc1",
+      "audio/webm",
+      "video/mp4;codecs=avc1",
+      "video/invalid",
+      "video/mp4",
+      "video/webm;codecs=h264",
+      "video/webm;codecs=h265",
+      "video/mpeg",
+    ];
+    contentTypes.forEach((contentType) => {
+      console.log(
+        contentType +
+          " is " +
+          (MediaRecorder.isTypeSupported(contentType)
+            ? "supported"
+            : "NOT supported ")
+      );
+    });
   },
   beforeUnmount() {
     this.stop();
@@ -148,22 +175,29 @@ export default {
       } else {
         combined = stream;
       }
-    
-      this.mediaRecorder = new MediaRecorder(combined);
+
+      this.mediaRecorder = new MediaRecorder(combined, {
+        mimeType: this.mimeType,
+      });
       this.mediaRecorder.ondataavailable = (event) => {
         let data = event.data;
         this.dataChunks.push(data);
       };
+      this.startRecordingTime = new Date().getTime();
       this.mediaRecorder.start(1000);
     },
 
     /**
      * @desc 停止录制
      */
-    stopRecording() {
+    async stopRecording() {
       this.mediaRecorder.stop();
-      let recordedBlob = new Blob(this.dataChunks, { type: "video/webm" });
-      let url = URL.createObjectURL(recordedBlob);
+      this.endRecordingTime = new Date().getTime();
+      // let recordedBlob = new Blob(this.dataChunks, { type: this.mimeType });
+      const fixBlob = await fixWebmDuration(new Blob([...this.dataChunks], { type: this.mimeType }));
+      this.dataChunks=[];
+      let url = URL.createObjectURL(fixBlob);
+      window.open(url);
       console.log(url);
       let time = useDateFormat(useNow(), "YYYY-MM-DD HH:mm:ss");
       saveAs(url, time.value + "录屏.webm");
